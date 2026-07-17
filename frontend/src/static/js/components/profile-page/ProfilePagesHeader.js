@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { usePopup } from '../../utils/hooks/';
 import { LinksContext, MemberContext, SiteContext } from '../../utils/contexts/';
+import { DonationWidget } from '../monetization/DonationWidget';
 import { PageStore, ProfilePageStore } from '../../utils/stores/';
 import { PageActions, ProfilePageActions } from '../../utils/actions/';
 import { CircleIconButton, PopupMain } from '../_shared';
@@ -802,6 +803,11 @@ export default function ProfilePagesHeader(props) {
                                         <h1>{props.author.name}</h1>
                                         {userCanEditProfile && !userIsAuthor ? (
                                             <EditProfileButton link={ProfilePageStore.get('author-data').edit_url} />
+                                        ) : null}
+                                        {!userIsAuthor && !MemberContext._currentValue.is.anonymous ? (
+                                            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'inline-flex' }}>
+                                                <DonationWidget creatorUsername={props.author.username} />
+                                            </ul>
                                         ) : null}
                                     </div>
                                 ) : null}

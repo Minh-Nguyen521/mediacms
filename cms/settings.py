@@ -62,6 +62,19 @@ INTERNAL_IPS = "127.0.0.1"
 # whether a featured item appears enlarged with player on index page
 VIDEO_PLAYER_FEATURED_VIDEO_ON_INDEX_PAGE = False
 
+# Google Ad Manager VAST tag URL for pre-roll/mid-roll video ads.
+# Leave empty string to disable ads entirely.
+# Example: "https://pubads.g.doubleclick.net/gampad/ads?iu=/NETWORK_CODE/AD_UNIT&..."
+GAM_AD_TAG_URL = ""
+
+# MoMo payment gateway credentials.
+# Use test credentials during development; swap for production values before going live.
+# Test credentials: https://developers.momo.vn/v3/docs/payment/onboarding/test-instructions/
+MOMO_PARTNER_CODE = ""
+MOMO_ACCESS_KEY = ""
+MOMO_SECRET_KEY = ""
+MOMO_API_URL = "https://test-payment.momo.vn"  # Switch to https://payment.momo.vn in production
+
 PRE_UPLOAD_MEDIA_MESSAGE = ""
 
 # email settings
@@ -316,6 +329,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.saml",
     "saml_auth.apps.SamlAuthConfig",
     "tinymce",
+    "subscriptions.apps.SubscriptionsConfig",
+    "donations.apps.DonationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -467,6 +482,10 @@ CELERY_BEAT_SCHEDULE = {
     "update_listings_thumbnails": {
         "task": "update_listings_thumbnails",
         "schedule": crontab(minute=2, hour="*/30"),
+    },
+    "expire_subscriptions": {
+        "task": "expire_subscriptions",
+        "schedule": crontab(hour=2, minute=0),  # Daily at 02:00 UTC
     },
 }
 # TODO: beat, delete chunks from media root

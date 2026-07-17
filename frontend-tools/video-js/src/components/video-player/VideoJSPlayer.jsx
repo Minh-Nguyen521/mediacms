@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
+import 'videojs-ima';
+import 'videojs-ima/dist/videojs.ima.css';
 import '../../styles/embed.css';
 import '../controls/SubtitlesButton.css';
 import './VideoJSPlayer.css';
@@ -2285,6 +2287,26 @@ function VideoJSPlayer({ videoId = 'default-video', showTitle = true, showRelate
                         }
                     };
                     // END: Initialize keyboard handler
+
+                    // BEGIN: Initialize Google IMA ads
+                    const adTagUrl = window.MediaCMS?.features?.ads?.adTagUrl;
+                    if (adTagUrl && mediaData.data?.media_type === 'video') {
+                        const initIma = () => {
+                            try {
+                                playerRef.current.ima({ adTagUrl });
+                            } catch (e) {
+                                console.error('IMA initialization failed:', e);
+                            }
+                        };
+
+                        if (window.google?.ima) {
+                            initIma();
+                        } else {
+                            // IMA SDK still loading — wait for it
+                            window.addEventListener('load', initIma, { once: true });
+                        }
+                    }
+                    // END: Initialize Google IMA ads
                 });
 
                 // Listen for next video event

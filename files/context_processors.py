@@ -59,6 +59,7 @@ def stuff(request):
     ret["USE_ROUNDED_CORNERS"] = settings.USE_ROUNDED_CORNERS
     ret["INCLUDE_LISTING_NUMBERS"] = settings.INCLUDE_LISTING_NUMBERS
     ret["ALLOW_MEDIA_REPLACEMENT"] = getattr(settings, 'ALLOW_MEDIA_REPLACEMENT', False)
+    ret["GAM_AD_TAG_URL"] = getattr(settings, 'GAM_AD_TAG_URL', "")
     ret["VERSION"] = VERSION
 
     if request.user.is_superuser:

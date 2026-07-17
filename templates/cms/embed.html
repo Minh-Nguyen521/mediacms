@@ -3,6 +3,12 @@
 
 {% block content %}<div id="page-embed"></div>{% endblock content %}
 
+{% block externalscripts %}
+{% if GAM_AD_TAG_URL %}
+<script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+{% endif %}
+{% endblock externalscripts %}
+
 {% block bottomimports %}
     <script src="{% static "js/embed.js" %}?v={{ VERSION }}"></script>
 {% endblock bottomimports %}

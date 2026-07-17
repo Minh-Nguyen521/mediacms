@@ -18,4 +18,5 @@ export * from './ProfileSharedByMePage';
 export * from './ProfileSharedWithMePage';
 export * from './RecommendedMediaPage';
 export * from './SearchPage';
+export * from './SubscriptionsPage';
 export * from './TagsPage';

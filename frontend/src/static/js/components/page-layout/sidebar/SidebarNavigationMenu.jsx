@@ -126,6 +126,13 @@ export function SidebarNavigationMenu() {
       });
     });
 
+    items.push({
+      link: '/subscriptions/',
+      icon: 'workspace_premium',
+      text: translateString('Go Premium'),
+      className: 'nav-item-premium',
+    });
+
     return items.length ? <NavigationMenuList key="main-first" items={formatItems(items)} /> : null;
   }
 

@@ -39,5 +39,9 @@ MediaCMS.features = {
 	},
 	playlists:{
 		mediaTypes: ['audio', 'video'],
-	}
+	},
+	ads:{
+		enabled: {% if GAM_AD_TAG_URL %}true{% else %}false{% endif %},
+		adTagUrl: "{{ GAM_AD_TAG_URL }}",
+	},
 };

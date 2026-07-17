@@ -125,6 +125,11 @@ const PAGES = {
     component: 'PlaylistPage',
     global: { playlistId: DEV_SAMPLE_DATA.playlistId },
   },
+  subscriptions: {
+    id: 'subscriptions',
+    title: 'Premium Membership',
+    component: 'SubscriptionsPage',
+  },
   'profile-media': {
     id: 'profile-media',
     title: 'Profile - Media',
