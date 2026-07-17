@@ -331,6 +331,7 @@ INSTALLED_APPS = [
     "tinymce",
     "subscriptions.apps.SubscriptionsConfig",
     "donations.apps.DonationsConfig",
+    "livestreams.apps.LivestreamsConfig",
 ]
 
 MIDDLEWARE = [

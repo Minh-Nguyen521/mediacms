@@ -140,6 +140,13 @@ export function SidebarNavigationMenu() {
     const items = [];
 
     if (!isAnonymous) {
+      items.push({
+        link: '/go-live/',
+        icon: 'live_tv',
+        text: translateString('Go Live'),
+        className: 'nav-item-go-live',
+      });
+
       if (userCan.addMedia) {
         items.push({
           link: links.user.addMedia,

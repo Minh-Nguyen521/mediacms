@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headtitle %}Go Live - {{PORTAL_NAME}}{% endblock headtitle %}
+
+{% block topimports %}
+<style>
+.go-live-wrap {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: var(--text-color, #eee);
+}
+.go-live-wrap h1 {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #e53935;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+.live-badge .dot {
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.go-live-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+.field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, #888);
+    margin-bottom: 6px;
+}
+.field-value {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+    word-break: break-all;
+}
+.copy-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    color: inherit;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.1); }
+.copy-btn.copied { border-color: #4caf50; color: #4caf50; }
+
+.go-live-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.go-live-btn:hover { background: #c62828; }
+.regen-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: inherit;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.regen-btn:hover { background: rgba(255,255,255,0.08); }
+
+.stream-form input[type=text] {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: inherit;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+}
+.stream-form input[type=text]:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.4);
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+.status-live { background: rgba(229,57,53,0.2); color: #ef5350; border: 1px solid #ef5350; }
+.status-offline { background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.15); }
+.status-ended { background: rgba(255,152,0,0.15); color: #ffa726; border: 1px solid #ffa726; }
+
+.preview-section { margin-top: 24px; }
+.preview-section video {
+    width: 100%;
+    border-radius: 8px;
+    background: #000;
+    max-height: 360px;
+}
+.section-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 24px 0;
+}
+
+.obs-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: step;
+}
+.obs-steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+}
+.obs-steps li::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    background: #e53935;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+</style>
+{% endblock topimports %}
+
+{% block content %}
+<div class="go-live-wrap">
+    <h1>
+        <span class="material-icons" style="font-size:1.8rem;color:#e53935">live_tv</span>
+        Go Live
+        {% if stream and stream.status == 'live' %}
+        <span class="live-badge"><span class="dot"></span>LIVE</span>
+        {% endif %}
+    </h1>
+
+    {% if not stream %}
+    <div class="go-live-card">
+        <p style="margin-bottom:18px;color:var(--text-muted,#aaa)">
+            Set up your live stream. After creating it, configure OBS with the RTMP details below and start broadcasting.
+        </p>
+        <form method="post" class="stream-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="field-label">Stream Title</div>
+            <input type="text" name="title" placeholder="Enter your stream title..." required>
+            <button type="submit" class="go-live-btn">
+                <span class="material-icons" style="font-size:1.1rem">add_circle</span>
+                Create Stream
+            </button>
+        </form>
+    </div>
+    {% else %}
+
+    <div class="go-live-card">
+        <div class="field-label">Status</div>
+        {% if stream.status == 'live' %}
+        <div class="status-indicator status-live">
+            <span class="material-icons" style="font-size:1rem">radio_button_checked</span>
+            You are LIVE
+        </div>
+        {% elif stream.status == 'offline' %}
+        <div class="status-indicator status-offline">
+            <span class="material-icons" style="font-size:1rem">radio_button_unchecked</span>
+            Offline — start OBS to go live
+        </div>
+        {% else %}
+        <div class="status-indicator status-ended">
+            <span class="material-icons" style="font-size:1rem">stop_circle</span>
+            Stream ended
+        </div>
+        {% endif %}
+
+        <div class="field-label">Stream Title</div>
+        <div class="field-value" style="font-family:inherit">{{ stream.title }}</div>
+
+        <div class="field-label">RTMP Server URL</div>
+        <div class="field-value" id="rtmp-url">
+            <span>rtmp://localhost:1935/live</span>
+            <button class="copy-btn" onclick="copyText('rtmp://localhost:1935/live', this)">Copy</button>
+        </div>
+
+        <div class="field-label">Stream Key</div>
+        <div class="field-value">
+            <span id="stream-key-val">{{ stream.stream_key }}</span>
+            <button class="copy-btn" onclick="copyText('{{ stream.stream_key }}', this)">Copy</button>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
+            <a href="/livestreams/{{ stream.pk }}/"
+               style="display:inline-flex;align-items:center;gap:6px;color:#90caf9;font-size:0.9rem">
+                <span class="material-icons" style="font-size:1rem">open_in_new</span>
+                Viewer page
+            </a>
+            <form method="post" style="display:inline"
+                  onsubmit="return confirm('This will invalidate your current stream key. Continue?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="regenerate_key">
+                <button type="submit" class="regen-btn">
+                    <span class="material-icons" style="font-size:1rem">refresh</span>
+                    New Stream Key
+                </button>
+            </form>
+        </div>
+
+        {% if stream.status == 'live' %}
+        <hr class="section-divider">
+        <div class="preview-section">
+            <div class="field-label">Live Preview</div>
+            <video id="live-preview" controls autoplay muted playsinline></video>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="go-live-card">
+        <div style="font-weight:600;margin-bottom:14px">
+            <span class="material-icons" style="vertical-align:middle;margin-right:6px;font-size:1.1rem">videocam</span>
+            OBS Setup Instructions
+        </div>
+        <ol class="obs-steps">
+            <li>Open OBS → Settings → Stream</li>
+            <li>Set <strong>Service</strong> to <em>Custom</em></li>
+            <li>Set <strong>Server</strong> to <code>rtmp://localhost:1935/live</code></li>
+            <li>Set <strong>Stream Key</strong> to your key above</li>
+            <li>Click <strong>Start Streaming</strong> in OBS</li>
+        </ol>
+    </div>
+
+    {% endif %}
+</div>
+
+{% endblock content %}
+
+{% block bottomimports %}
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+{% if stream and stream.status == 'live' %}
+(function() {
+    var video = document.getElementById('live-preview');
+    if (!video) return;
+    var hlsUrl = '/live/live/{{ stream.stream_key }}.m3u8';
+
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = hlsUrl;
+    } else if (window.Hls && Hls.isSupported()) {
+        var hls = new Hls();
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+    }
+})();
+{% endif %}
+
+{% if stream %}
+(function() {
+    var streamId = {{ stream.pk }};
+    setInterval(function() {
+        fetch('/api/livestreams/' + streamId + '/status/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status !== '{{ stream.status }}') {
+                    window.location.reload();
+                }
+            });
+    }, 10000);
+})();
+{% endif %}
+</script>
+{% endblock bottomimports %}

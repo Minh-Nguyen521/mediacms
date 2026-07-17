@@ -76,6 +76,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  srs:
+    image: ossrs/srs:5
+    ports:
+      - "1935:1935"
+      - "8080:8080"
+    volumes:
+      - ./deploy/srs/srs.conf:/usr/local/srs/conf/srs.conf
+    restart: always
+    depends_on:
+      - web
   redis:
     image: "redis:alpine"
     restart: always

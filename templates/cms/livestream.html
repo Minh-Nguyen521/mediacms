@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headtitle %}{{ stream.title }} - Live - {{PORTAL_NAME}}{% endblock headtitle %}
+
+{% block topimports %}
+<style>
+.livestream-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+    color: var(--text-color, #eee);
+}
+.stream-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.stream-header h1 {
+    font-size: 1.4rem;
+    margin: 0;
+}
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e53935;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+}
+.live-badge .dot {
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.offline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.08);
+    color: #999;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+}
+
+.player-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.player-container video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+}
+.player-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    color: #aaa;
+    background: rgba(0,0,0,0.6);
+}
+.player-overlay .material-icons {
+    font-size: 3rem;
+    color: #555;
+}
+
+.stream-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.88rem;
+    color: #aaa;
+}
+.stream-meta .creator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    text-decoration: none;
+}
+.stream-meta .creator:hover { color: #eee; }
+</style>
+{% endblock topimports %}
+
+{% block content %}
+<div class="livestream-wrap">
+    <div class="stream-header">
+        <h1 id="stream-title">{{ stream.title }}</h1>
+        <span id="stream-badge">
+            {% if stream.status == 'live' %}
+            <span class="live-badge"><span class="dot"></span>LIVE</span>
+            {% elif stream.status == 'ended' %}
+            <span class="offline-badge">ENDED</span>
+            {% else %}
+            <span class="offline-badge">OFFLINE</span>
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="player-container">
+        <video id="live-video" controls autoplay muted playsinline
+               {% if stream.status != 'live' %}style="display:none"{% endif %}>
+        </video>
+        <div id="player-overlay" class="player-overlay"
+             {% if stream.status == 'live' %}style="display:none"{% endif %}>
+            <span class="material-icons">live_tv</span>
+            <span id="overlay-text">
+                {% if stream.status == 'ended' %}
+                    The stream has ended.
+                {% else %}
+                    The streamer is not live yet. Check back soon.
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="stream-meta">
+        <a class="creator" href="/{{ stream.creator.username }}/">
+            <span class="material-icons" style="font-size:1.1rem">account_circle</span>
+            {{ stream.creator.username }}
+        </a>
+        {% if stream.started_at %}
+        <span>
+            <span class="material-icons" style="font-size:0.9rem;vertical-align:middle">schedule</span>
+            Started {{ stream.started_at|date:"H:i, d M Y" }}
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block bottomimports %}
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+var STREAM_ID = {{ stream.pk }};
+var STREAM_KEY = '{{ stream.stream_key }}';
+var currentStatus = '{{ stream.status }}';
+var hlsInstance = null;
+
+function initPlayer() {
+    var video = document.getElementById('live-video');
+    var hlsUrl = '/live/live/' + STREAM_KEY + '.m3u8';
+
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = hlsUrl;
+        video.style.display = '';
+    } else if (window.Hls && Hls.isSupported()) {
+        if (hlsInstance) { hlsInstance.destroy(); }
+        hlsInstance = new Hls({ liveSyncDurationCount: 3 });
+        hlsInstance.loadSource(hlsUrl);
+        hlsInstance.attachMedia(video);
+        video.style.display = '';
+    }
+}
+
+function showOverlay(text) {
+    var video = document.getElementById('live-video');
+    var overlay = document.getElementById('player-overlay');
+    video.style.display = 'none';
+    overlay.style.display = '';
+    document.getElementById('overlay-text').textContent = text;
+    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+}
+
+function updateBadge(status) {
+    var badge = document.getElementById('stream-badge');
+    if (status === 'live') {
+        badge.innerHTML = '<span class="live-badge"><span class="dot"></span>LIVE</span>';
+    } else if (status === 'ended') {
+        badge.innerHTML = '<span class="offline-badge">ENDED</span>';
+    } else {
+        badge.innerHTML = '<span class="offline-badge">OFFLINE</span>';
+    }
+}
+
+if (currentStatus === 'live') {
+    initPlayer();
+}
+
+setInterval(function() {
+    fetch('/api/livestreams/' + STREAM_ID + '/status/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === currentStatus) return;
+            currentStatus = data.status;
+            updateBadge(data.status);
+
+            if (data.status === 'live') {
+                document.getElementById('player-overlay').style.display = 'none';
+                initPlayer();
+            } else if (data.status === 'ended') {
+                showOverlay('The stream has ended.');
+            } else {
+                showOverlay('The streamer is offline.');
+            }
+        })
+        .catch(function() {});
+}, 8000);
+</script>
+{% endblock bottomimports %}
